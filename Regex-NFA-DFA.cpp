@@ -12,7 +12,7 @@ public:
 
 vector<vector<Edge>> edges;
 
-char symbol[6]={'(','*','&','+',')','#'};
+char symbol[6]={'(','*','&','|',')','#'};
 int pri[][6]={
         {1, 1, 1, 1, 0, 1},
         {-1,1, 1, 1, 1, 1},
@@ -78,7 +78,7 @@ string addConnectSymbol(const string &s){
     int len=s.length();
     r.push_back(s[0]);
     for(int i=1;i<len;i++){
-        if(s[i]!='*' && s[i]!='+' && s[i]!=')'){
+        if(s[i]!='*' && s[i]!='|' && s[i]!=')' && r.back()!='|' && r.back()!='('){
             r.push_back('&');
         }
         r.push_back(s[i]);
@@ -86,29 +86,75 @@ string addConnectSymbol(const string &s){
     return r;
 }
 
-int main(){
-    init_cmp();
-    string regex;
-    cin>>regex;
-    regex=addConnectSymbol(regex)+'#';
+void outputGraph(Segment s,const string &filename){
+    ofstream ofs(filename,ios::trunc);
+    ofs<<"digraph finite_state_machine {\n"
+         "\trankdir = LR\n"
+         "\tedge [fontname=\"Segoe UI Symbol\"];\n"
+         "\tnode [fontname=\"Segoe UI Symbol\"];\n"
+         "\tsize=\"800,1500\";\n"
+         "\tfixedsize=true;\n"
+         "\tautosize=false;\n"
+         "\tnode [shape = doublecircle]; q"<<s.end<<";\n""\tnode [shape = circle];\n";
+    bool vis[edges.size()];
+    memset(vis,0,sizeof(vis));
+    queue<int> q;
+    q.push(s.start);
+    while(!q.empty()){
+        int cnt=q.front();
+        q.pop();
+        for(auto &i:edges[cnt]){
+            ofs<<"\tq"<<cnt<<"->q"<<i.to<<" [label=\"";
+            if(i.op){
+                ofs<<i.op;
+            }else{
+                ofs<<"ε";
+            }
+            ofs<<"\"];\n";
+            if(!vis[i.to]){
+                q.push(i.to);
+                vis[i.to]=true;
+            }
+        }
+    }
+    ofs<<"}";
+    ofs.close();
+    system("dot 1.dot -o 1.png -Tpng");
+    system("cmd.exe /c start 1.png");
+}
 
+Segment regex2Segment(const string &regex){
     stack<char> sym;
     stack<Segment> obj;
     sym.push('#');
     for(char c:regex){
-        if(c=='*' || c=='+' || c=='(' || c==')' || c=='#' || c=='&'){
+        if(c=='*' || c=='|' || c=='(' || c==')' || c=='#' || c=='&'){
             // symbol
             while(cmp[sym.top()][c]>0){
-                // pop out syms
+                // pop out symbols
                 if(sym.top()=='*'){
-
-                }else if(sym.top()=='+'){
-
+                    sym.pop();
+                    obj.top()=obj.top().star();
+                }else if(sym.top()=='|'){
+                    sym.pop();
+                    Segment a=obj.top();
+                    obj.pop();
+                    Segment b=obj.top();
+                    obj.pop();
+                    obj.push(b.plus(a));
                 }else if(sym.top()=='&'){
-
-                }else if(sym.top()==')'){
-
+                    sym.pop();
+                    Segment a=obj.top();
+                    obj.pop();
+                    Segment b=obj.top();
+                    obj.pop();
+                    obj.push(b.connect(a));
+                }else if(sym.top()=='('){
+                    sym.pop();
                 }
+            }
+            if(c=='*' || c=='|' || c=='(' || c=='&'){
+                sym.push(c);
             }
         }else{
             // object
@@ -118,4 +164,14 @@ int main(){
             obj.push({l,r});
         }
     }
+    return obj.top();
+}
+
+int main(){
+    init_cmp();
+    string regex;
+    cin>>regex;
+    regex=addConnectSymbol(regex)+'#';
+    Segment graph=regex2Segment(regex);
+    outputGraph(graph,"1.dot");
 }
