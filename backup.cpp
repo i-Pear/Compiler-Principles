@@ -100,3 +100,15 @@ vector<int> findRelation(Segment s){
     }
     return res;
 }
+
+Unit derive(char c){
+    Unit res;
+    for(int node:nodes){
+        for(auto&e:edges[node]){
+            if(e.op==c&&available.find(e.to)!=available.end()){
+                res.nodes.insert(e.to);
+            }
+        }
+    }
+    return res;
+}
