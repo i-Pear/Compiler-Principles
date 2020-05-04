@@ -17,12 +17,12 @@ set<int> final_state;
 
 char symbol[6]={'(','*','&','|',')','#'};
 int pri[][6]={
-        {1, 1, 1, 1, 0, 1},
-        {-1,1, 1, 1, 1, 1},
-        {-1,-1,1, 1, 1, 1},
-        {-1,-1,-1,1, 1, 1},
-        {0, -1,-1,-1,1, 1},
-        {-1,-1,-1,-1,-1,0}
+        {0,0,0,0,1,1},
+        {1,1,1,1,1,1},
+        {0,0,1,1,1,1},
+        {0,0,0,1,1,1},
+        {0,0,0,0,0,0},
+        {0,0,0,0,0,0}
 };
 unordered_map<char,unordered_map<char,int>> cmp;
 
@@ -238,6 +238,7 @@ Segment regex2Segment(const string &regex){
                     obj.push(b.connect(a));
                 }else if(sym.top()=='('){
                     sym.pop();
+                    if(c==')')break;
                 }
             }
             if(c=='*' || c=='|' || c=='(' || c=='&'){
