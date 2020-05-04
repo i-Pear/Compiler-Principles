@@ -89,9 +89,93 @@ string addConnectSymbol(const string &s){
     return r;
 }
 
+void check_start_able(int n){
+    int vis[edges.size()];
+    memset(vis,0,sizeof(vis));
+    start_able.clear();
+    queue<int> q;
+    q.push(n);
+    start_able.insert(n);
+    while(!q.empty()){
+        int cnt=q.front();
+        q.pop();
+        for(auto &e:edges[cnt]){
+            if(!vis[e.to]){
+                start_able.insert(e.to);
+                vis[e.to]=true;
+                q.push(e.to);
+            }
+        }
+    }
+}
 
+void check_final_state(int final){
+    // reverse edges
+    vector<Edge> rev[edges.size()];
+    for(int i=0;i<edges.size();i++){
+        for(auto &e:edges[i]){
+            rev[e.to].emplace_back(e.op,i);
+        }
+    }
 
-void outputGraph(Segment s,const string &filename){
+    int vis[edges.size()];
+    memset(vis,0,sizeof(vis));
+    final_state.clear();
+    queue<int> q;
+    q.push(final);
+    final_state.insert(final);
+    vis[final]=true;
+    while(!q.empty()){
+        int cnt=q.front();
+        q.pop();
+        for(auto &e:rev[cnt]){
+            if(e.op)continue;
+            if(!vis[e.to]){
+                final_state.insert(e.to);
+                vis[e.to]=true;
+                q.push(e.to);
+            }
+        }
+    }
+}
+
+void check_end_able(){
+    // reverse edges
+    vector<Edge> rev[edges.size()];
+    for(int i=0;i<edges.size();i++){
+        for(auto &e:edges[i]){
+            rev[e.to].emplace_back(e.op,i);
+        }
+    }
+
+    int vis[edges.size()];
+    memset(vis,0,sizeof(vis));
+    end_able.clear();
+    queue<int> q;
+    for(int n:final_state){
+        q.push(n);
+        end_able.insert(n);
+        vis[n]=true;
+    }
+    while(!q.empty()){
+        int cnt=q.front();
+        q.pop();
+        for(auto &e:rev[cnt]){
+            if(!vis[e.to]){
+                end_able.insert(e.to);
+                vis[e.to]=true;
+                q.push(e.to);
+            }
+        }
+    }
+}
+
+void outputGraph(Segment s,const string &filename="1.dot"){
+    check_end_able();
+    check_start_able(s.start);
+    set<int> nodes;
+    set_intersection(start_able.begin(),start_able.end(),end_able.begin(),end_able.end(),
+                     insert_iterator<set<int>>(nodes,nodes.begin()));
     ofstream ofs(filename,ios::trunc);
     ofs<<"digraph finite_state_machine {\n"
          "\trankdir = LR\n"
@@ -100,10 +184,16 @@ void outputGraph(Segment s,const string &filename){
          "\tsize=\"800,1500\";\n"
          "\tfixedsize=true;\n"
          "\tautosize=false;\n"
-         "\tnode [shape = doublecircle]; q"<<s.end<<";\n""\tnode [shape = circle];\n";
-    auto nodes=findRelation(s);
+         "\tnode [shape = doublecircle];";
+    for(int end:final_state){
+        if(nodes.find(end)!=nodes.end()){
+            ofs<<" q"<<end;
+        }
+    }
+    ofs<<";\n""\tnode [shape = circle];\n";
     for(int cnt:nodes){
         for(auto &i:edges[cnt]){
+            if(nodes.find(i.to)==nodes.end())continue;
             ofs<<"\tq"<<cnt<<"->q"<<i.to<<" [label=\"";
             if(i.op){
                 ofs<<i.op;
@@ -113,9 +203,10 @@ void outputGraph(Segment s,const string &filename){
             ofs<<"\"];\n";
         }
     }
+    ofs<<"start->q"<<s.start<<";\n";
     ofs<<"}";
     ofs.close();
-    system("dot 2.dot -o 1.png -Tpng");
+    system("dot 1.dot -o 1.png -Tpng");
     system("cmd.exe /c start 1.png");
 }
 
@@ -163,15 +254,12 @@ Segment regex2Segment(const string &regex){
     return obj.top();
 }
 
-void check_start_able(){
-
-}
-
 void eraseEmpty(Segment s){
+    check_final_state(s.end);
     int outEmptyDegree[edges.size()];
     memset(outEmptyDegree,0,sizeof(outEmptyDegree));
     for(int i=0;i<edges.size();i++){
-        for(auto&j:edges[i]){
+        for(auto &j:edges[i]){
             if(j.op==0){
                 outEmptyDegree[i]++;
             }
@@ -191,9 +279,9 @@ void eraseEmpty(Segment s){
         // erase empty trans towards cnt
         for(int node=0;node<edges.size();node++){
             for(auto i=edges[node].begin();i!=edges[node].end();i++){
-                if(i->op==0&&i->to==cnt){
+                if(i->op==0 && i->to==cnt){
                     // node->cnt is an empty edge
-                    for(auto&e:edges[cnt]){
+                    for(auto &e:edges[cnt]){
                         addEdge(node,e.to,e.op);
                     }
                     // erase it
@@ -219,5 +307,5 @@ int main(){
     Segment graph=regex2Segment(regex);
     // outputGraph(graph,"1.dot");
     eraseEmpty(graph);
-    outputGraph(graph,"2.dot");
+    outputGraph(graph);
 }
