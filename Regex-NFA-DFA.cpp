@@ -17,12 +17,12 @@ set<int> final_state;
 
 char symbol[6]={'(','*','&','|',')','#'};
 int pri[][6]={
-        {0,0,0,0,1,1},
-        {1,1,1,1,1,1},
-        {0,0,1,1,1,1},
-        {0,0,0,1,1,1},
-        {0,0,0,0,0,0},
-        {0,0,0,0,0,0}
+        {1, 1, 1, 1, 0, 1},
+        {-1,1, 1, 1, 1, 1},
+        {-1,-1,1, 1, 1, 1},
+        {-1,-1,-1,1, 1, 1},
+        {0, -1,-1,-1,1, 1},
+        {-1,-1,-1,-1,-1,0}
 };
 unordered_map<char,unordered_map<char,int>> cmp;
 
@@ -170,54 +170,6 @@ void check_end_able(){
     }
 }
 
-vector<int> _findRelation(Segment s){
-    bool vis[edges.size()];
-    vector<int> res;
-    memset(vis,0,sizeof(vis));
-    queue<int> q;
-    q.push(s.start);
-    while(!q.empty()){
-        int cnt=q.front();
-        res.push_back(cnt);
-        q.pop();
-        for(auto &i:edges[cnt]){
-            if(!vis[i.to]){
-                q.push(i.to);
-                vis[i.to]=true;
-            }
-        }
-    }
-    return res;
-}
-
-void _outputGraph(Segment s,const string &filename="1.dot"){
-    ofstream ofs(filename,ios::trunc);
-    ofs<<"digraph finite_state_machine {\n"
-         "\trankdir = LR\n"
-         "\tedge [fontname=\"Segoe UI Symbol\"];\n"
-         "\tnode [fontname=\"Segoe UI Symbol\"];\n"
-         "\tsize=\"800,1500\";\n"
-         "\tfixedsize=true;\n"
-         "\tautosize=false;\n"
-         "\tnode [shape = doublecircle]; q"<<s.end<<";\n""\tnode [shape = circle];\n";
-    auto nodes=_findRelation(s);
-    for(int cnt:nodes){
-        for(auto &i:edges[cnt]){
-            ofs<<"\tq"<<cnt<<"->q"<<i.to<<" [label=\"";
-            if(i.op){
-                ofs<<i.op;
-            }else{
-                ofs<<"ε";
-            }
-            ofs<<"\"];\n";
-        }
-    }
-    ofs<<"}";
-    ofs.close();
-    system("dot 1.dot -o 1.png -Tpng");
-    system("cmd.exe /c start 1.png");
-}
-
 void outputGraph(Segment s,const string &filename="1.dot"){
     check_end_able();
     check_start_able(s.start);
@@ -225,11 +177,6 @@ void outputGraph(Segment s,const string &filename="1.dot"){
     set_intersection(start_able.begin(),start_able.end(),end_able.begin(),end_able.end(),
                      insert_iterator<set<int>>(nodes,nodes.begin()));
     ofstream ofs(filename,ios::trunc);
-    map<int,int> remap;
-    int count=0;
-    for(int x:nodes){
-        remap[x]=count++;
-    }
     ofs<<"digraph finite_state_machine {\n"
          "\trankdir = LR\n"
          "\tedge [fontname=\"Segoe UI Symbol\"];\n"
@@ -240,14 +187,14 @@ void outputGraph(Segment s,const string &filename="1.dot"){
          "\tnode [shape = doublecircle];";
     for(int end:final_state){
         if(nodes.find(end)!=nodes.end()){
-            ofs<<" q"<<remap[end];
+            ofs<<" q"<<end;
         }
     }
     ofs<<";\n""\tnode [shape = circle];\n";
     for(int cnt:nodes){
         for(auto &i:edges[cnt]){
             if(nodes.find(i.to)==nodes.end())continue;
-            ofs<<"\tq"<<remap[cnt]<<"->q"<<remap[cnt]<<" [label=\"";
+            ofs<<"\tq"<<cnt<<"->q"<<i.to<<" [label=\"";
             if(i.op){
                 ofs<<i.op;
             }else{
@@ -358,7 +305,7 @@ int main(){
     cin>>regex;
     regex=addConnectSymbol(regex)+'#';
     Segment graph=regex2Segment(regex);
-    _outputGraph(graph);
+    // outputGraph(graph,"1.dot");
     eraseEmpty(graph);
-    //outputGraph(graph);
+    outputGraph(graph);
 }
