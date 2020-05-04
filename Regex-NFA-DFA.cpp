@@ -18,7 +18,7 @@ set<int> final_state;
 char symbol[6]={'(','*','&','|',')','#'};
 int pri[][6]={
         {0,0,0,0,1,1},
-        {1,1,1,1,1,1},
+        {0,1,1,1,1,1},
         {0,0,1,1,1,1},
         {0,0,0,1,1,1},
         {0,0,0,0,0,0},
@@ -300,13 +300,14 @@ void eraseEmpty(Segment s){
     }
 }
 
+
+
 int main(){
     init_cmp();
     string regex;
     cin>>regex;
     regex=addConnectSymbol(regex)+'#';
     Segment graph=regex2Segment(regex);
-    // outputGraph(graph,"1.dot");
     eraseEmpty(graph);
     outputGraph(graph);
 }
