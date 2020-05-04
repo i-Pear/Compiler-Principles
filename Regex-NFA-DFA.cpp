@@ -184,7 +184,7 @@ void check_available(Segment s){
                      insert_iterator<set<int>>(available, available.begin()));
 }
 
-void outputGraph(int start, const string&filename="1.dot", bool noChecking=false){
+void outputGraph(int start, bool noChecking=false, const string&filename="1.dot"){
     ofstream ofs(filename, ios::trunc);
     ofs<<"digraph finite_state_machine {\n"
          "\trankdir = LR\n"
@@ -366,6 +366,16 @@ void convertDFA(int start){
             addEdge(remap[i.first], remap[j.second], j.first);
         }
     }
+    // re-calculate final states
+    set<int> temp;
+    auto final=final_state;
+    final_state.clear();
+    for(auto&i:remap){
+        temp.clear();
+        set_intersection(i.first.nodes.begin(), i.first.nodes.end(), final.begin(), final.end(),
+                         insert_iterator<set<int>>(temp, temp.begin()));
+        if(!temp.empty())final_state.insert(i.second);
+    }
 }
 
 int main(){
@@ -380,8 +390,9 @@ int main(){
     eraseEmpty(graph);
     // erase unused nodes
     check_available(graph);
+    //outputGraph(graph.start);
     // convert to DFA
     convertDFA(graph.start);
     // draw graph
-    outputGraph(graph);
+    outputGraph(0, true);
 }
