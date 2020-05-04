@@ -202,7 +202,7 @@ void outputGraph(int start, bool noChecking=false, const string&filename="1.dot"
     ofs<<";\n""\tnode [shape = circle];\n";
     for(int cnt:available){
         for(auto&i:edges[cnt]){
-            if(noChecking||available.find(i.to)==available.end())continue;
+            if((!noChecking)&&available.find(i.to)==available.end())continue;
             ofs<<"\tq"<<cnt<<"->q"<<i.to<<" [label=\"";
             if(i.op){
                 ofs<<i.op;
@@ -357,6 +357,11 @@ void convertDFA(int start){
             }
         }
     }
+    // re-calculate available
+    available.clear();
+    for(int i=0; i<mp.size(); i++){
+        available.insert(i);
+    }
     // clear graph
     edges.resize(0);
     edges.resize(mp.size());
@@ -390,7 +395,7 @@ int main(){
     eraseEmpty(graph);
     // erase unused nodes
     check_available(graph);
-    //outputGraph(graph.start);
+    outputGraph(graph.start);
     // convert to DFA
     convertDFA(graph.start);
     // draw graph
