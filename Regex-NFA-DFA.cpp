@@ -10,7 +10,10 @@ public:
     Edge(char op,int to) : op(op),to(to){}
 };
 
-vector<vector<Edge>> edges;
+vector<list<Edge>> edges;
+set<int> start_able;
+set<int> end_able;
+set<int> final_state;
 
 char symbol[6]={'(','*','&','|',')','#'};
 int pri[][6]={
@@ -86,6 +89,8 @@ string addConnectSymbol(const string &s){
     return r;
 }
 
+
+
 void outputGraph(Segment s,const string &filename){
     ofstream ofs(filename,ios::trunc);
     ofs<<"digraph finite_state_machine {\n"
@@ -96,13 +101,8 @@ void outputGraph(Segment s,const string &filename){
          "\tfixedsize=true;\n"
          "\tautosize=false;\n"
          "\tnode [shape = doublecircle]; q"<<s.end<<";\n""\tnode [shape = circle];\n";
-    bool vis[edges.size()];
-    memset(vis,0,sizeof(vis));
-    queue<int> q;
-    q.push(s.start);
-    while(!q.empty()){
-        int cnt=q.front();
-        q.pop();
+    auto nodes=findRelation(s);
+    for(int cnt:nodes){
         for(auto &i:edges[cnt]){
             ofs<<"\tq"<<cnt<<"->q"<<i.to<<" [label=\"";
             if(i.op){
@@ -111,15 +111,11 @@ void outputGraph(Segment s,const string &filename){
                 ofs<<"ε";
             }
             ofs<<"\"];\n";
-            if(!vis[i.to]){
-                q.push(i.to);
-                vis[i.to]=true;
-            }
         }
     }
     ofs<<"}";
     ofs.close();
-    system("dot 1.dot -o 1.png -Tpng");
+    system("dot 2.dot -o 1.png -Tpng");
     system("cmd.exe /c start 1.png");
 }
 
@@ -167,11 +163,61 @@ Segment regex2Segment(const string &regex){
     return obj.top();
 }
 
+void check_start_able(){
+
+}
+
+void eraseEmpty(Segment s){
+    int outEmptyDegree[edges.size()];
+    memset(outEmptyDegree,0,sizeof(outEmptyDegree));
+    for(int i=0;i<edges.size();i++){
+        for(auto&j:edges[i]){
+            if(j.op==0){
+                outEmptyDegree[i]++;
+            }
+        }
+    }
+    queue<int> q;
+    for(int i=0;i<edges.size();i++){
+        if(outEmptyDegree[i]==0){
+            q.push(i);
+        }
+    }
+    // turp
+    while(!q.empty()){
+        // cnt has no empty outEdge
+        int cnt=q.front();
+        q.pop();
+        // erase empty trans towards cnt
+        for(int node=0;node<edges.size();node++){
+            for(auto i=edges[node].begin();i!=edges[node].end();i++){
+                if(i->op==0&&i->to==cnt){
+                    // node->cnt is an empty edge
+                    for(auto&e:edges[cnt]){
+                        addEdge(node,e.to,e.op);
+                    }
+                    // erase it
+                    auto b=i;
+                    i++;
+                    edges[node].erase(b);
+                    i--;
+                    outEmptyDegree[node]--;
+                    if(outEmptyDegree[node]==0){
+                        q.push(node);
+                    }
+                }
+            }
+        }
+    }
+}
+
 int main(){
     init_cmp();
     string regex;
     cin>>regex;
     regex=addConnectSymbol(regex)+'#';
     Segment graph=regex2Segment(regex);
-    outputGraph(graph,"1.dot");
+    // outputGraph(graph,"1.dot");
+    eraseEmpty(graph);
+    outputGraph(graph,"2.dot");
 }
