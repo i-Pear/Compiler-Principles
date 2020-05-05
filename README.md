@@ -20,3 +20,7 @@ DFA
 
 ![DFA](https://github.com/i-Pear/Compiler-Principles/blob/master/statics/DFA.png)
 
+## Lexical-Analysis
+
+![Lexical-Analysis](https://github.com/i-Pear/Compiler-Principles/blob/master/statics/lex-analysis.png)
+
