@@ -179,8 +179,60 @@ void check_available(Segment s){
                      insert_iterator<set<int>>(available,available.begin()));
 }
 
-void outputGraph(int start,bool noChecking=false,const string &filename="1.dot"){
-    ofstream ofs(filename,ios::trunc);
+vector<int> _findRelation(Segment s){
+    bool vis[edges.size()];
+    vector<int> res;
+    memset(vis,0,sizeof(vis));
+    queue<int> q;
+    q.push(s.start);
+    while(!q.empty()){
+        int cnt=q.front();
+        res.push_back(cnt);
+        q.pop();
+        for(auto &i:edges[cnt]){
+            if(!vis[i.to]){
+                q.push(i.to);
+                vis[i.to]=true;
+            }
+        }
+    }
+    return res;
+}
+
+void _outputGraph(Segment s,const string &filename){
+    ofstream ofs(filename+".dot",ios::trunc);
+    ofs<<"digraph finite_state_machine {\n"
+         "\trankdir = LR\n"
+         "\tedge [fontname=\"Segoe UI Symbol\"];\n"
+         "\tnode [fontname=\"Segoe UI Symbol\"];\n"
+         "\tsize=\"800,1500\";\n"
+         "\tfixedsize=true;\n"
+         "\tautosize=false;\n"
+         "\tnode [shape = doublecircle];";
+    ofs<<" q"<<s.end<<";\n""\tnode [shape = circle];\n";
+    auto available=_findRelation(s);
+    for(int cnt:available){
+        for(auto &i:edges[cnt]){
+            ofs<<"\tq"<<cnt<<"->q"<<i.to<<" [label=\"";
+            if(i.op){
+                ofs<<i.op;
+            }else{
+                ofs<<"ε";
+            }
+            ofs<<"\"];\n";
+        }
+    }
+    ofs<<"start->q"<<s.start<<";\n";
+    ofs<<"}";
+    ofs.close();
+    string command1="dot "+filename+".dot -o "+filename+".png -Tpng";
+    system(command1.c_str());
+    string command2="cmd.exe /c start "+filename+".png";
+    system(command2.c_str());
+}
+
+void outputGraph(int start,const string &filename,bool noChecking=false){
+    ofstream ofs(filename+".dot",ios::trunc);
     ofs<<"digraph finite_state_machine {\n"
          "\trankdir = LR\n"
          "\tedge [fontname=\"Segoe UI Symbol\"];\n"
@@ -210,8 +262,10 @@ void outputGraph(int start,bool noChecking=false,const string &filename="1.dot")
     ofs<<"start->q"<<start<<";\n";
     ofs<<"}";
     ofs.close();
-    system("dot 1.dot -o 1.png -Tpng");
-    system("cmd.exe /c start 1.png");
+    string command1="dot "+filename+".dot -o "+filename+".png -Tpng";
+    system(command1.c_str());
+    string command2="cmd.exe /c start "+filename+".png";
+    system(command2.c_str());
 }
 
 Segment regex2Segment(const string &regex){
@@ -389,13 +443,14 @@ int main(){
     regex=addConnectSymbol(regex)+'#';
     // convert to graph
     Segment graph=regex2Segment(regex);
+    _outputGraph(graph,"e-NFA");
     // erase empty edges
     eraseEmpty(graph);
     // erase unused nodes
     check_available(graph);
-    //outputGraph(graph.start);
+    outputGraph(graph.start,"NFA");
     // convert to DFA
     convertDFA(graph.start);
     // draw graph
-    outputGraph(0,true);
+    outputGraph(0,"DFA",true);
 }
