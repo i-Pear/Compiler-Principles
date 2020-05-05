@@ -4,11 +4,11 @@
 
 ### Regex->ε-NFA->NFA->DFA
 
-![regex-snapshot][https://github.com/i-Pear/Compiler-Principles/blob/master/statics/regex-snapshot.png]
+![regex-snapshot](https://github.com/i-Pear/Compiler-Principles/blob/master/statics/regex-snapshot.png)
 
-![e=NFA][https://github.com/i-Pear/Compiler-Principles/blob/master/statics/e-NFA.png]
+![e=NFA](https://github.com/i-Pear/Compiler-Principles/blob/master/statics/e-NFA.png)
 
-![NFA][https://github.com/i-Pear/Compiler-Principles/blob/master/statics/NFA.png]
+![NFA](https://github.com/i-Pear/Compiler-Principles/blob/master/statics/NFA.png)
 
-![DFA][https://github.com/i-Pear/Compiler-Principles/blob/master/statics/DFA.png]
+![DFA](https://github.com/i-Pear/Compiler-Principles/blob/master/statics/DFA.png)
 
