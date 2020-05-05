@@ -443,14 +443,18 @@ int main(){
     regex=addConnectSymbol(regex)+'#';
     // convert to graph
     Segment graph=regex2Segment(regex);
+    // draw e-NFA
     _outputGraph(graph,"e-NFA");
+
     // erase empty edges
     eraseEmpty(graph);
     // erase unused nodes
     check_available(graph);
+    // draw NFA
     outputGraph(graph.start,"NFA");
+
     // convert to DFA
     convertDFA(graph.start);
-    // draw graph
+    // draw DFA
     outputGraph(0,"DFA",true);
 }
