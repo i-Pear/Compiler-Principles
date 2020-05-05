@@ -1,0 +1,44 @@
+void eraseEmpty(Segment s){
+    check_final_state(s.end);
+    int outEmptyDegree[edges.size()];
+    memset(outEmptyDegree,0,sizeof(outEmptyDegree));
+    for(int i=0;i<edges.size();i++){
+        for(auto &j:edges[i]){
+            if(j.op==0){
+                outEmptyDegree[i]++;
+            }
+        }
+    }
+    queue<int> q;
+    for(int i=0;i<edges.size();i++){
+        if(outEmptyDegree[i]==0){
+            q.push(i);
+        }
+    }
+    // turp
+    while(!q.empty()){
+        // cnt has no empty outEdge
+        int cnt=q.front();
+        q.pop();
+        // erase empty trans towards cnt
+        for(int node=0;node<edges.size();node++){
+            for(auto i=edges[node].begin();i!=edges[node].end();i++){
+                if(i->op==0 && i->to==cnt){
+                    // node->cnt is an empty edge
+                    for(auto &e:edges[cnt]){
+                        addEdge(node,e.to,e.op);
+                    }
+                    // erase it
+                    auto b=i;
+                    i++;
+                    edges[node].erase(b);
+                    i--;
+                    outEmptyDegree[node]--;
+                    if(outEmptyDegree[node]==0){
+                        q.push(node);
+                    }
+                }
+            }
+        }
+    }
+}
