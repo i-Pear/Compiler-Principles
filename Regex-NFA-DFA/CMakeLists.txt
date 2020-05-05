@@ -4,4 +4,3 @@ project(code)
 set(CMAKE_CXX_STANDARD 14)
 
 add_executable(Regex-NFA-DFA Regex-NFA-DFA.cpp)
-add_executable(Lexical-Analysis Lexical-Analysis.cpp)
